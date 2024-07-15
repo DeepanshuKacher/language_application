@@ -1,0 +1,14 @@
+/* GridStyles.module.css */
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two columns by default */
+  grid-gap: 10px; /* Gap between grid items */
+  padding: 0 10px;
+}
+
+@media (max-width: 768px) {
+  /* Adjust the breakpoint as needed */
+  .gridContainer {
+    grid-template-columns: 1fr; /* One column on smaller screens */
+  }
+}
