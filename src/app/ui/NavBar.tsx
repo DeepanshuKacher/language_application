@@ -1,14 +1,16 @@
 "use client";
 
-import Button from "react-bootstrap/Button";
+import { ThemeContext } from "@/utils";
+import { useContext } from "react";
+import Image from "next/image";
 import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
 import Nav from "react-bootstrap/Nav";
+import Link from "next/link";
 import Navbar from "react-bootstrap/Navbar";
-import NavDropdown from "react-bootstrap/NavDropdown";
 import Offcanvas from "react-bootstrap/Offcanvas";
 
 export function NavBar() {
+  const { toggleTheme, theme } = useContext(ThemeContext);
   return (
     <>
       <Navbar expand="md" className="bg-body-tertiary mb-3">
@@ -27,14 +29,31 @@ export function NavBar() {
             </Offcanvas.Header>
             <Offcanvas.Body>
               <Nav className="justify-content-end flex-grow-1 pe-3">
+                <Nav.Link href="#actioddn1">
+                  <Image
+                    onClick={toggleTheme}
+                    src={
+                      theme == "dark"
+                        ? "/icons/darkmode.svg"
+                        : "/icons/lightmode.svg"
+                    }
+                    alt="light/dark mode"
+                    width={20}
+                    height={20}
+                  />
+                </Nav.Link>
                 <Nav.Link href="#action1">
-                  Daily <span style={{ color: "red" }}>*</span>
+                  <Link href="/">
+                    Daily <span style={{ color: "red" }}>*</span>
+                  </Link>
                 </Nav.Link>
                 <Nav.Link href="#action2">Weekely</Nav.Link>
                 <Nav.Link href="#action2">Monthly</Nav.Link>
                 <Nav.Link href="#action2">Yearly</Nav.Link>
-                <Nav.Link className="bold" href="#action2">
-                  <strong>Add Word</strong>
+                <Nav.Link className="bold">
+                  <Link href="/addword">
+                    <strong>Add Word</strong>
+                  </Link>
                 </Nav.Link>
               </Nav>
             </Offcanvas.Body>
