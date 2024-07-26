@@ -7,8 +7,10 @@ import Card from "react-bootstrap/Card";
 import Image from "next/image";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import NavLink from "react-bootstrap/NavLink";
 import styles from "./Page.module.css";
 import { useState } from "react";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const Columen = () => (
   <Col className="p-0">
@@ -30,13 +32,23 @@ const Columen = () => (
   </Col>
 );
 
-function Home() {
+const Home = () => {
+  const { user } = useUser();
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(0);
 
   const handleToggleAnswer = () => {
     setShowAnswer(!showAnswer);
   };
+
+  if (!user) {
+    return (
+      <div className="d-flex justify-content-center align-items-center flex-column">
+        <NavLink href="/api/auth/login">Login</NavLink>
+      </div>
+    );
+  }
+
 
   return (
     <Container fluid>
@@ -140,6 +152,6 @@ function Home() {
       </Row>
     </Container>
   );
-}
+};
 
 export default Home;

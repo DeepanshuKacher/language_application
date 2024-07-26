@@ -81,7 +81,7 @@ function AddWord() {
         <Form.Control
           as="select"
           value={typeofWord}
-          defaultValue="selectwordtype"
+          // defaultValue="selectwordtype"
           onChange={(e) => setTypeofWord(e.target.value as TypeOfEnglishWord)}
         >
           {Object.values(TypeOfEnglishWord).map((type) => (

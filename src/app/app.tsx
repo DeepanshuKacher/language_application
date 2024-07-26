@@ -4,8 +4,9 @@ import React, { useEffect, useState } from "react";
 import { Inter } from "next/font/google";
 import Spinner from "react-bootstrap/Spinner";
 import Container from "react-bootstrap/Container";
-import { NavBar } from "@ui/NavBar";
 import { getLocalStorage, setLocalStorage, Theme, ThemeContext } from "@/utils";
+import { NavBar } from "@components/NavBar";
+import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,8 +25,6 @@ const App = ({
         setTheme(retreveValue);
       }
 
-      console.log(retreveValue);
-
       setLoading(false);
     })();
   }, []);
@@ -35,8 +34,6 @@ const App = ({
     await setLocalStorage("theme", theme);
 
     const data = await getLocalStorage("theme");
-
-    console.log(data);
   };
 
   if (loading)
@@ -64,8 +61,10 @@ const App = ({
               toggleTheme: toggleDarkMode,
             }}
           >
-            <NavBar />
-            {children}
+            <UserProvider>
+              <NavBar />
+              {children}
+            </UserProvider>
           </ThemeContext.Provider>
         </body>
       </html>
