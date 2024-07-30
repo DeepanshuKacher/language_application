@@ -24,23 +24,15 @@ enum TypeOfEnglishWord {
   verb
 }
 
-model EnglishWord {
-  id            String            @id @default(auto()) @map("_id") @db.ObjectId
-  word          String
-  meaning       String
-  hindimeaning  String?
-  description   String?
-  typeofword    TypeOfEnglishWord
-  UserWordScore UserWordScore[]
-}
-
-model UserWordScore {
-  id              String @id @default(auto()) @map("_id") @db.ObjectId
-  wordMemoryScore Int    @default(0)
-  userEmailId     String @unique
-
-  englishWord   EnglishWord? @relation(fields: [englishWordId], references: [id])
-  englishWordId String?      @db.ObjectId
+model EnglishUserWord {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  word            String
+  meaning         String
+  hindimeaning    String?
+  description     String?
+  wordMemoryScore Int               @default(0)
+  userEmailId     String
+  typeofword      TypeOfEnglishWord
 
   updatedAt DateTime @updatedAt
 }

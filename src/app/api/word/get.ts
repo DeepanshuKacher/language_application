@@ -1,8 +1,23 @@
-import { prisma } from "@/utils";
-import { NextRequest, NextResponse } from "next/server";
+"use server";
 
-export default async function handle(req: NextRequest, res: NextResponse) {
-  // const wordAdded = await prisma.englishWord.create({
-  //   data: {},
-  // });
+import { prisma, response_message } from "@/utils";
+import { getSession } from "@auth0/nextjs-auth0";
+import { EnglishUserWord } from "@prisma/client";
+
+export async function getWords(): Promise<EnglishUserWord[]> {
+  "use server";
+
+  const session = await getSession();
+
+  try {
+    const words = await prisma.englishUserWord.findMany({
+      where: {
+        userEmailId: session?.user.email,
+      },
+    });
+
+    return words;
+  } catch (error) {
+    throw error;
+  }
 }

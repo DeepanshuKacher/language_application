@@ -1,21 +1,23 @@
 "use client";
 
-import { ThemeContext } from "@/utils";
 import { useContext } from "react";
 import Image from "next/image";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
+import BootstrapImage from "react-bootstrap/Image";
 import Link from "next/link";
 import Dropdown from "react-bootstrap/Dropdown";
 import Navbar from "react-bootstrap/Navbar";
 import Offcanvas from "react-bootstrap/Offcanvas";
 // import Image from ''
 import { useUser } from "@auth0/nextjs-auth0/client";
+import NavDropdown from "react-bootstrap/esm/NavDropdown";
+import { UniversalContext } from "@/utils";
 
 export function NavBar() {
   const { user } = useUser();
 
-  const { toggleTheme, theme } = useContext(ThemeContext);
+  const { toggleTheme, theme } = useContext(UniversalContext);
   return (
     <>
       <Navbar expand="md" className="bg-body-tertiary mb-3">
@@ -47,37 +49,39 @@ export function NavBar() {
                     height={20}
                   />
                 </Nav.Link>
-                <Nav.Link as={Link} href="/">
+                <Nav.Link as={Link} href="/questions/daily">
                   Daily <span style={{ color: "red" }}>*</span>
+                </Nav.Link>
+                <Nav.Link as={Link} href="/questions/weekly">
+                  Weekly <span style={{ color: "red" }}>*</span>
+                </Nav.Link>
+                <Nav.Link as={Link} href="/questions/monthly">
+                  Monthly <span style={{ color: "red" }}>*</span>
+                </Nav.Link>
+                <Nav.Link as={Link} href="/questions/yearly">
+                  Yearly <span style={{ color: "red" }}>*</span>
                 </Nav.Link>
                 <Nav.Link as={Link} href="/addword" className="bold">
                   <strong>Add Word</strong>
                 </Nav.Link>
 
                 {user ? (
-                  <Dropdown>
-                    <Dropdown.Toggle
-                      className="dropdown-toggle"
-                      id="dropdown-basic"
-                      variant={theme === "dark" ? "secondary" : "primary"}
-                    >
-                      <Image
-                        alt="Profile Pic"
+                  <NavDropdown
+                    title={
+                      <BootstrapImage
                         src={user?.picture || "/icons/user.svg"}
+                        roundedCircle
                         width={30}
+                        alt="User Profile Image"
                         height={30}
-                        className="rounded-circle"
                       />
-                    </Dropdown.Toggle>
-
-                    <Dropdown.Menu>
-                      {/* <Dropdown.Item href="#/action-1">Profile</Dropdown.Item> */}
-
-                      <Dropdown.Item href="/api/auth/logout">
-                        Logout
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                    }
+                    id={`offcanvasNavbarDropdown-expand`}
+                  >
+                    <NavDropdown.Item href="/api/auth/logout">
+                      Logout
+                    </NavDropdown.Item>
+                  </NavDropdown>
                 ) : (
                   <Nav.Link className="bold" href="/api/auth/login">
                     Login

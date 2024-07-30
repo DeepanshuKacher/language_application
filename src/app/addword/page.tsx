@@ -1,102 +1,152 @@
 "use client";
-/*   id            String            @id @default(auto()) @map("_id") @db.ObjectId
-  word          String
-  meaning       String
-  hindimeaning  String?
-  description   String?
-  typeofword    TypeOfEnglishWord
-  UserWordScore UserWordScore[] */
 
-import { useState } from "react";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-
-enum TypeOfEnglishWord {
-  adjective = "adjective",
-  adverb = "adverb",
-  conjunction = "conjunction",
-  determiner = "determiner",
-  noun = "noun",
-  preposition = "preposition",
-  pronoun = "pronoun",
-  verb = "verb",
-}
+import { initialState, response_message } from "@/utils";
+import { TypeOfEnglishWord } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import Spinner from "react-bootstrap/Spinner";
+import { useFormState } from "react-dom";
+import { createWord } from "../api/word/create";
+import { useEffect, useState } from "react";
+import { withPageAuthRequired } from "@auth0/nextjs-auth0/client";
+// import { createWord } from "../lib/actions";
 
 function AddWord() {
-  const [word, setWord] = useState("");
-  const [meaning, setMeaning] = useState("");
-  const [hindiMeaning, setHindiMeaning] = useState("");
-  const [description, setDescription] = useState("");
-  const [typeofWord, setTypeofWord] = useState<TypeOfEnglishWord>(
-    TypeOfEnglishWord.noun
-  );
+  const router = useRouter();
+  // const [state, formAction] = useFormState(createWord, initialState);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Perform form submission logic here
+  // useEffect(() => {
+  //   if (state.message === response_message.creation_success.message) {
+  //     router.push("/");
+  //   } else if (state.message === response_message.creation_error.message) {
+  //     alert(response_message.creation_error.message);
+  //     setLoading(false);
+  //   }
+  // }, [state.message]);
+
+  const addWord = (e: FormData) => {
+    setLoading(true);
+
+    // to prevent multiple clicks
+    setTimeout(() => {
+      createWord(e)
+        .then((response) => router.push("/"))
+        .catch((error) => {
+          alert("Unable to add word");
+          if (process.env.NODE_ENV === "development") console.log(error);
+          setLoading(false);
+        });
+    }, 50);
+
+    // setTimeout(() => {
+    //   formAction(e);
+    // }, 500);
   };
 
+  /*   async function createWord(formData: FormData) {
+    "use server";
+    const session = await getSession();
+
+    const rawFormData = {
+      word: formData.get("word"),
+      meaning: formData.get("meaning"),
+      hindimeaning: formData.get("hindimeaning"),
+      description: formData.get("description"),
+      typeofword: formData.get("typeofword"),
+      userEmailId: session?.user.email,
+    };
+
+    try {
+      const wordData = parse(wordScheme, rawFormData);
+
+      const data = await prisma.englishUserWord.create({
+        data: wordData,
+      });
+
+      // return data;
+    } catch (error) {
+      console.log(error);
+    }
+
+    // mutate data
+    // revalidate cache
+  } */
+
   return (
-    <Form onSubmit={handleSubmit} className="p-4">
-      <Form.Group controlId="word" className="mb-3">
-        <Form.Label>Word</Form.Label>
-        <Form.Control
+    <form className="p-4" action={addWord}>
+      <div className="mb-3">
+        <label htmlFor="word" className="form-label">
+          Word
+        </label>
+        <input
           type="text"
+          className="form-control"
+          id="word"
+          name="word"
           required
-          value={word}
-          onChange={(e) => setWord(e.target.value)}
         />
-      </Form.Group>
+      </div>
 
-      <Form.Group controlId="meaning" className="mb-3">
-        <Form.Label>Meaning</Form.Label>
-        <Form.Control
+      <div className="mb-3">
+        <label htmlFor="meaning" className="form-label">
+          Meaning
+        </label>
+        <textarea
+          className="form-control"
+          id="meaning"
+          name="meaning"
           required
-          as="textarea"
-          value={meaning}
-          onChange={(e) => setMeaning(e.target.value)}
-        />
-      </Form.Group>
+        ></textarea>
+      </div>
 
-      <Form.Group controlId="hindiMeaning" className="mb-3">
-        <Form.Label>Hindi Meaning</Form.Label>
-        <Form.Control
-          as="textarea"
-          value={hindiMeaning}
-          onChange={(e) => setHindiMeaning(e.target.value)}
-        />
-      </Form.Group>
+      <div className="mb-3">
+        <label htmlFor="hindimeaning" className="form-label">
+          Hindi Meaning
+        </label>
+        <textarea
+          className="form-control"
+          id="hindimeaning"
+          name="hindimeaning"
+        ></textarea>
+      </div>
 
-      <Form.Group controlId="description" className="mb-3">
-        <Form.Label>Description</Form.Label>
-        <Form.Control
-          as="textarea"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </Form.Group>
+      <div className="mb-3">
+        <label htmlFor="description" className="form-label">
+          Description
+        </label>
+        <textarea
+          className="form-control"
+          id="description"
+          name="description"
+        ></textarea>
+      </div>
 
-      <Form.Group controlId="typeofWord" className="mb-3">
-        <Form.Label>Type of Word</Form.Label>
-        <Form.Control
-          as="select"
-          value={typeofWord}
-          // defaultValue="selectwordtype"
-          onChange={(e) => setTypeofWord(e.target.value as TypeOfEnglishWord)}
+      <div className="mb-3">
+        <label htmlFor="typeofword" className="form-label">
+          Type of Word
+        </label>
+        <select
+          className="form-select"
+          id="typeofword"
+          name="typeofword"
+          defaultValue=""
         >
+          <option disabled value="">
+            Select
+          </option>
           {Object.values(TypeOfEnglishWord).map((type) => (
             <option key={type} value={type}>
               {type}
             </option>
           ))}
-        </Form.Control>
-      </Form.Group>
+        </select>
+      </div>
 
-      <Button variant="primary" type="submit" className="mt-3">
-        Submit
-      </Button>
-    </Form>
+      <button type="submit" disabled={loading} className="btn btn-primary mt-3">
+        {loading ? <Spinner size="sm" /> : "Submit"}
+      </button>
+    </form>
   );
 }
 
-export default AddWord;
+export default withPageAuthRequired(AddWord);

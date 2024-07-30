@@ -4,9 +4,16 @@ import React, { useEffect, useState } from "react";
 import { Inter } from "next/font/google";
 import Spinner from "react-bootstrap/Spinner";
 import Container from "react-bootstrap/Container";
-import { getLocalStorage, setLocalStorage, Theme, ThemeContext } from "@/utils";
+import {
+  getLocalStorage,
+  pageType,
+  setLocalStorage,
+  Theme,
+  UniversalContext,
+} from "@/utils";
 import { NavBar } from "@components/NavBar";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { SSRProvider } from "react-bootstrap";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,6 +24,7 @@ const App = ({
 }>) => {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<Theme>("light");
+  // const [page, setPage] = useState<keyof typeof pageType>("daily");
 
   useEffect(() => {
     (async () => {
@@ -55,17 +63,19 @@ const App = ({
     return (
       <html lang="en" data-bs-theme={theme}>
         <body className={inter.className}>
-          <ThemeContext.Provider
+          <UniversalContext.Provider
             value={{
               theme,
               toggleTheme: toggleDarkMode,
+              // page,
+              // setPage,
             }}
           >
             <UserProvider>
               <NavBar />
               {children}
             </UserProvider>
-          </ThemeContext.Provider>
+          </UniversalContext.Provider>
         </body>
       </html>
     );
