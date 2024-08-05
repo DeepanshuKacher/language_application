@@ -5,151 +5,25 @@ import Container from "react-bootstrap/Container";
 // import Grid from 'react-bootstrap/'
 import Card from "react-bootstrap/Card";
 import Image from "next/image";
-import dayjs from "dayjs";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import styles from "./Page.module.css";
 import { useEffect, useState } from "react";
 import { withPageAuthRequired } from "@auth0/nextjs-auth0/client";
 import { EnglishUserWord } from "@prisma/client";
-import { DayEnum, getRandomElements, pageType } from "@/utils";
+import {
+  DayEnum,
+  filterWordsByCategory,
+  getRandomEnglishWordArray,
+  pageType,
+  shuffleArray,
+} from "@/utils";
 import { getWords } from "@/app/api/word/get";
 import {
   incrementWordMemoryScore,
   updateWordUpdatedAt,
 } from "@/app/api/word/clickedRightAnswer";
-
-const Column = ({
-  englishWord,
-  flipMode,
-  handleClick,
-  questionWord,
-}: {
-  englishWord: EnglishUserWord;
-  flipMode: boolean;
-  handleClick: (id: string) => void;
-  questionWord?: EnglishUserWord;
-}) => {
-  const [isClickedRight, setIsClickedRight] = useState<boolean | null>(null);
-
-  const handleOnclick = () => {
-    handleClick(englishWord.id);
-    if (questionWord?.id === englishWord.id) setIsClickedRight(true);
-    else setIsClickedRight(false);
-  };
-
-  return (
-    <Col onClick={handleOnclick} className="p-0">
-      {flipMode ? (
-        <Card style={{ cursor: "pointer" }} className="p-2">
-          <Card.Title className="text-center">{englishWord.meaning}</Card.Title>
-        </Card>
-      ) : (
-        <Card
-          style={{ cursor: "pointer" }}
-          className={`p-2 ${
-            isClickedRight === true
-              ? "border-success"
-              : isClickedRight === false
-              ? "border-danger"
-              : ""
-          }`}
-        >
-          <Card.Text>Meaning:- {englishWord.meaning}</Card.Text>
-          {englishWord.hindimeaning ? (
-            <Card.Text>Hindi meaning:- {englishWord.hindimeaning}</Card.Text>
-          ) : null}
-          {englishWord.description ? (
-            <Card.Text>Description:- {englishWord.description}</Card.Text>
-          ) : null}
-        </Card>
-      )}
-    </Col>
-  );
-};
-
-// const SignAccordingToAnswerStatus = ({
-//   answerStatus,
-// }: {
-//   answerStatus: "hide" | "show" | "reload" | "next";
-// }) => {
-//   switch (answerStatus) {
-//     case "hide":
-//       return (
-//         <Col className="text-center">
-//           <Button variant="success">
-//             <Image
-//               alt="show answer"
-//               aria-label="Show answer"
-//               width={20}
-//               height={20}
-//               src="/icons/reload.svg"
-//             />
-//           </Button>
-//         </Col>
-//       );
-//     case "show":
-//       return <div>Your answer is correct.</div>;
-//     case "reload":
-//       return <div>Please try again.</div>;
-//     case "next":
-//       return (
-//         <div>
-//           <Button variant="primary" onClick={() => window.location.reload()}>
-//             Next
-//           </Button>
-//         </div>
-//       );
-//   }
-// };
-
-const filterWordsByCategory = (
-  words: EnglishUserWord[],
-  category: DayEnum
-): EnglishUserWord[] => {
-  const now = dayjs();
-
-  switch (category) {
-    case "daily":
-      return words.filter(
-        (word) =>
-          word.wordMemoryScore <= 6 && now.diff(word.updatedAt, "D") >= 12
-      );
-
-    case "weekly":
-      return words.filter(
-        (word) =>
-          word.wordMemoryScore >= 7 &&
-          word.wordMemoryScore <= 10 &&
-          now.diff(word.updatedAt, "week") >= 1
-      );
-
-    case "monthly":
-      return words.filter(
-        (word) =>
-          word.wordMemoryScore >= 11 &&
-          word.wordMemoryScore <= 13 &&
-          now.diff(word.updatedAt, "month") >= 1
-      );
-
-    case "yearly":
-      return words.filter(
-        (word) =>
-          word.wordMemoryScore >= 14 &&
-          word.wordMemoryScore <= 15 &&
-          now.diff(word.updatedAt, "year") >= 1
-      );
-  }
-};
-
-const shuffleArray: <T>(array: T[]) => T[] = (array) => {
-  const shuffledArray = array.slice(); // Create a copy of the array
-  for (let i = shuffledArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-  }
-  return shuffledArray;
-};
+import { Column } from "@/components/Column";
 
 const Home = ({ params }: { params: { dayenum: string } }) => {
   const [answerStatus, setAnswerStatus] = useState<"reload" | "next">("reload");
@@ -161,20 +35,12 @@ const Home = ({ params }: { params: { dayenum: string } }) => {
   const [isCurrentAnswerClickedWrong, setIsCurrentAnswerClickedWrong] =
     useState(false);
   const [flipMode, setFlipMode] = useState(false);
+  const [isElementClicked, setIsElementClicked] = useState(false);
 
   useEffect(() => {
     getWords()
       .then((data) => {
         setWords(data);
-        if (params.dayenum in pageType) {
-          const filteredWords = filterWordsByCategory(
-            data,
-            params.dayenum as DayEnum
-          );
-
-          setFilteredWords(filteredWords);
-        } else if (process.env.NODE_ENV === "development")
-          console.warn("not in page");
       })
       .catch((error) => {
         alert("Unable to fetch words");
@@ -183,25 +49,45 @@ const Home = ({ params }: { params: { dayenum: string } }) => {
   }, []);
 
   useEffect(() => {
-    handleNextQuestion();
-  }, [filteredWords]);
+    if (words.length > 0) {
+      if (params.dayenum in pageType) {
+        const filteredWords = filterWordsByCategory(
+          words,
+          params.dayenum as DayEnum
+        );
+
+        setFilteredWords(filteredWords);
+      } else if (process.env.NODE_ENV === "development")
+        console.warn("not in page");
+    }
+  }, [words]);
 
   useEffect(() => {
-    console.log({ questionWord }, { optionsWord });
-  }, [questionWord, optionsWord]);
+    if (filteredWords.length > 0) {
+      setQuestionWord(filteredWords[questionIndex]);
+
+      reloadOptions(0);
+    }
+  }, [filteredWords]);
+
+  // useEffect(() => {
+  //   if (questionWord) console.log({ questionWord }, { optionsWord });
+  // }, [questionWord, optionsWord]);
 
   const handleOptionClick = (id: string) => {
     if (questionWord?.id === id) {
       handleRightAnswer(id);
     } else {
-      handleWrongAnswer(id);
+      handleWrongAnswer();
     }
+
+    setIsElementClicked(true);
 
     // handleNextQuestion();
   };
 
   const handleRightAnswer = (wordId: string) => {
-    if (isCurrentAnswerClickedWrong === false)
+    if (isCurrentAnswerClickedWrong === false) {
       incrementWordMemoryScore(wordId)
         .then(() => {
           setAnswerStatus("next");
@@ -210,7 +96,7 @@ const Home = ({ params }: { params: { dayenum: string } }) => {
           alert("Unable to submit answer");
           if (process.env.NODE_ENV === "development") console.log(error);
         });
-    else {
+    } else {
       updateWordUpdatedAt(wordId)
         .then(() => {
           setAnswerStatus("next");
@@ -222,39 +108,41 @@ const Home = ({ params }: { params: { dayenum: string } }) => {
     }
   };
 
-  const handleWrongAnswer = (wordId: string) => {
+  const handleWrongAnswer = () => {
     setIsCurrentAnswerClickedWrong(true);
   };
 
-  const reloadOptions = () => {
-    const threeRandomWords = getRandomElements<EnglishUserWord>(
-      filteredWords,
-      3
+  const reloadOptions = (questionIndex: number) => {
+    if (isElementClicked) setIsElementClicked(false);
+    if (answerStatus === "next") setAnswerStatus("reload");
+
+    const threeRandomWords = getRandomEnglishWordArray(
+      words,
+      3,
+      filteredWords[questionIndex]
     );
 
-    let tempWordStore: EnglishUserWord[] = [
+    const tempWordStore: EnglishUserWord[] = [
       ...threeRandomWords,
       filteredWords[questionIndex],
     ];
-
-    if (questionWord) {
-      tempWordStore = [...threeRandomWords, questionWord];
-    } else {
-      tempWordStore = [...threeRandomWords, filteredWords[questionIndex]];
-    }
-
     const shuffledArray = shuffleArray(tempWordStore);
     setOptionsWord(shuffledArray);
   };
 
   const handleNextQuestion = () => {
-    if (questionIndex < filteredWords.length) {
+    console.log(questionIndex);
+    const newQuestionIndex = questionIndex + 1;
+    if (newQuestionIndex < filteredWords.length) {
+      reloadOptions(newQuestionIndex);
+
       setIsCurrentAnswerClickedWrong(false);
-      setQuestionWord(filteredWords[questionIndex]);
 
-      reloadOptions();
+      setQuestionWord(filteredWords[newQuestionIndex]);
 
-      setQuestionIndex(questionIndex + 1);
+      setQuestionIndex(newQuestionIndex);
+    } else {
+      alert("Question is over");
     }
   };
 
@@ -294,13 +182,17 @@ const Home = ({ params }: { params: { dayenum: string } }) => {
             flipMode={flipMode}
             key={option.id + index}
             questionWord={questionWord}
+            isAlreadyClicked={isElementClicked}
           />
         ))}
       </Row>
       <Row className="my-3">
-        {answerStatus === "reload" ? (
-          <Col onClick={reloadOptions} className="text-center">
-            <Button variant="success">
+        {answerStatus === "reload" && filteredWords.length > 0 ? (
+          <Col className="text-center">
+            <Button
+              onClick={() => reloadOptions(questionIndex)}
+              variant="success"
+            >
               <Image
                 alt="show answer"
                 aria-label="Show answer"
@@ -310,9 +202,9 @@ const Home = ({ params }: { params: { dayenum: string } }) => {
               />
             </Button>
           </Col>
-        ) : (
-          <Col onClick={handleNextQuestion} className="text-center">
-            <Button variant="success">
+        ) : filteredWords.length > 0 ? (
+          <Col className="text-center">
+            <Button onClick={handleNextQuestion} variant="success">
               <Image
                 alt="show answer"
                 aria-label="Show answer"
@@ -322,17 +214,19 @@ const Home = ({ params }: { params: { dayenum: string } }) => {
               />
             </Button>
           </Col>
-        )}
-        <Col className="text-center">
-          <Button disabled variant="secondary">
-            <Image
-              alt="change pattern"
-              width={20}
-              height={20}
-              src="/icons/swip.svg"
-            />
-          </Button>
-        </Col>
+        ) : null}
+        {filteredWords.length > 0 ? (
+          <Col className="text-center">
+            <Button disabled variant="secondary">
+              <Image
+                alt="change pattern"
+                width={20}
+                height={20}
+                src="/icons/swip.svg"
+              />
+            </Button>
+          </Col>
+        ) : null}
       </Row>
     </Container>
   );
