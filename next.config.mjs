@@ -5,6 +5,11 @@ const nextConfig = {
             hostname:'lh3.googleusercontent.com'
         }],
     },
+    experimental:{
+        serverActions:{
+            allowedOrigins: ["learn-language.techresonance.com"],
+        }
+    }
 };
 
 export default nextConfig;
