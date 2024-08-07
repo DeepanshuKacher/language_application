@@ -35,4 +35,6 @@ model EnglishUserWord {
   typeofword      TypeOfEnglishWord
 
   updatedAt DateTime @updatedAt
+
+  @@unique([userEmailId, word])
 }
